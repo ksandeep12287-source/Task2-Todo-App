@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List App </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif}
+        body{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;display:flex;justify-content:center;padding:30px 15px}
+       .todo-app{background:#fff;border-radius:20px;padding:30px;box-shadow:0 20px 40px rgba(0,0,0,0.2);width:100%;max-width:550px}
+       .todo-app h1{text-align:center;color:#333;font-size:28px}
+       .todo-app h1 i{color:#764ba2}
+       .subtitle{text-align:center;color:#888;font-size:13px;margin-bottom:25px}
+       .input-section{display:flex;gap:10px;margin-bottom:20px}
+        #taskInput{flex:1;padding:12px 15px;border:2px solid #eee;border-radius:10px;outline:none;font-size:15px}
+        #taskInput:focus{border-color:#764ba2}
+        #addBtn{background:#764ba2;color:#fff;border:none;padding:0 20px;border-radius:10px;cursor:pointer;font-weight:600}
+        #addBtn:hover{background:#5a3a8a}
+       .filter-section{display:flex;justify-content:center;gap:10px;margin-bottom:20px}
+       .filter-btn{padding:6px 15px;border:1px solid #ddd;background:#fff;border-radius:20px;cursor:pointer;font-size:13px}
+       .filter-btn.active{background:#764ba2;color:#fff;border-color:#764ba2}
+        #taskList{list-style:none}
+        #taskList li{display:flex;align-items:center;gap:12px;padding:12px;background:#f9f9f9;border-radius:10px;margin-bottom:10px;animation:fadeIn.3s}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        #taskList li.completed{opacity:.6}
+        #taskList li.completed.task-text{text-decoration:line-through}
+       .task-check{width:20px;height:20px;accent-color:#764ba2}
+       .task-text{flex:1;font-size:15px}
+       .delete-btn{background:#ff4d4d;color:#fff;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer}
+       .footer{display:flex;justify-content:space-between;align-items:center;margin-top:20px;padding-top:15px;border-top:1px solid #eee;font-size:14px;color:#666}
+        #clearCompleted{background:none;border:none;color:#ff4d4d;cursor:pointer;font-weight:500}
+    </style>
+</head>
+<body>
+    <div class="todo-app">
+        <h1><i class="fa-solid fa-list-check"></i> To-Do List App</h1>
+        <p class="subtitle">Task 2 </p>
+        <div class="input-section">
+            <input type="text" id="taskInput" placeholder="Add a new task...">
+            <button id="addBtn"><i class="fa-solid fa-plus"></i> Add</button>
+        </div>
+        <div class="filter-section">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="active">Active</button>
+            <button class="filter-btn" data-filter="completed">Completed</button>
+        </div>
+        <ul id="taskList"></ul>
+        <div class="footer">
+            <span id="taskCount">0 tasks left</span>
+            <button id="clearCompleted">Clear Completed</button>
+        </div>
+    </div>
+<script>
+let tasks=JSON.parse(localStorage.getItem('tasks'))||[];
+let currentFilter='all';
+const taskInput=document.getElementById('taskInput'),addBtn=document.getElementById('addBtn'),taskList=document.getElementById('taskList'),taskCount=document.getElementById('taskCount');
+function saveTasks(){localStorage.setItem('tasks',JSON.stringify(tasks))}
+function renderTasks(){
+    taskList.innerHTML='';
+    let filtered=tasks.filter(t=>{if(currentFilter==='active')return!t.completed;if(currentFilter==='completed')return t.completed;return true});
+    filtered.forEach((task)=>{
+        const realIndex=tasks.indexOf(task);
+        const li=document.createElement('li');
+        if(task.completed)li.classList.add('completed');
+        li.innerHTML=`<input type="checkbox" class="task-check" ${task.completed?'checked':''} onchange="toggleTask(${realIndex})"><span class="task-text">${task.text}</span><button class="delete-btn" onclick="deleteTask(${realIndex})"><i class="fa-solid fa-trash"></i></button>`;
+        taskList.appendChild(li);
+    });
+    taskCount.textContent=`${tasks.filter(t=>!t.completed).length} tasks left`;
+}
+function addTask(){const text=taskInput.value.trim();if(!text)return;tasks.push({text,completed:false});taskInput.value='';saveTasks();renderTasks()}
+function toggleTask(i){tasks[i].completed=!tasks[i].completed;saveTasks();renderTasks()}
+function deleteTask(i){tasks.splice(i,1);saveTasks();renderTasks()}
+addBtn.addEventListener('click',addTask);
+taskInput.addEventListener('keypress',e=>{if(e.key==='Enter')addTask()});
+document.querySelectorAll('.filter-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentFilter=btn.dataset.filter;renderTasks()})});
+document.getElementById('clearCompleted').addEventListener('click',()=>{tasks=tasks.filter(t=>!t.completed);saveTasks();renderTasks()});
+renderTasks();
+</script>
+</body>
+</html>
